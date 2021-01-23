@@ -104,6 +104,8 @@ class TB:
         Insert for data with new keys;
         Update for data with exist keys.
         """
+        if len(data) == 0:
+            return
         # part 1
         cols = list(self.listCol().keys())
         sqlPart1 = "("
