@@ -33,7 +33,7 @@ class DB:
         values = self.cur.fetchall()
         tbs = []
         for tb in values:
-            tbs.append(tb)
+            tbs.append(tb[0])
         return tbs
 
     def countTB(self) -> int:
