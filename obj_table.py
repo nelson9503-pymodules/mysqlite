@@ -121,9 +121,11 @@ class TB:
             vals[self.keyCol] = keyVal
             sqlPart2 += "("
             for col in cols:
-                if col in vals:
+                if not col in vals or vals[col] == None:
+                    val = "null"
+                else:
                     val = self.__valueToString(vals[col])
-                    sqlPart2 += val + ","
+                sqlPart2 += val + ","
             if sqlPart2[-1] == ",":
                 sqlPart2 = sqlPart2[:-1]
             sqlPart2 += "),"
