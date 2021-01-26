@@ -25,11 +25,15 @@ class DB:
         """
         self.conn.close()
 
-    def listTB(self) -> list:
+    def listTB(self, filter: str = None) -> list:
         """
         List out all Tables in database.
         """
-        self.cur.execute("SELECT name from sqlite_master WHERE type='table';")
+        sql = "SELECT name from sqlite_master WHERE type='table'"
+        if not filter == None:
+            sql += " AND name LIKE '%{}%'".format(filter)
+        sql += ";"
+        self.cur.execute(sql)
         values = self.cur.fetchall()
         tbs = []
         for tb in values:
