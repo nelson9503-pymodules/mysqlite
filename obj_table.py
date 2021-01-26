@@ -119,6 +119,21 @@ class TB:
         else:
             raise TypeError("Unrecongized sql type.")
         df = lightdf.from_dict(result, self.keyCol, keyType)
+        for col in cols:
+            if col == self.keyCol:
+                continue
+            elif "INT" in cols[col]:
+                df.changeColType(col, int)
+            elif "DOUBLE" in cols[col] or "FLOAT" in cols[col]:
+                df.changeColType(col, float)
+            elif "CHAR" in cols[col] or "TEXT" in cols[col]:
+                df.changeColType(col, str)
+            elif "BOOLEAN" in cols[col]:
+                df.changeColType(col, bool)
+            elif "DATETIME" in cols[col]:
+                df.changeColType(col, datetime)
+            else:
+                raise TypeError("Unrecongized sql type.")
         return df
 
     def update(self, data: dict):

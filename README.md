@@ -56,6 +56,7 @@ db.close()
 * **func |** countData ( ) **->** NumOfData: `int`
 * **func |** dropData ( keyVal: `any` )
 * **func |** query ( column: `str`, condition: `str` ) **->** results: `dict`
+* **func |** query_todf ( ) **->** dataframe: `object`
 * **func |** update ( data: `dict` )
 
 ---
