@@ -1,3 +1,7 @@
+from .lightdf.dataframe import Dataframe
+import lightdf
+from datetime import datetime
+
 
 class TB:
 
@@ -99,6 +103,24 @@ class TB:
                 results[value[0]][cols[i]] = value[i]
         return results
 
+    def query_todf(self, column: str = "*", condition="") -> Dataframe:
+        result = self.query(column, condition)
+        cols = self.listCol()
+        if "INT" in cols[self.keyCol]:
+            keyType = int
+        elif "DOUBLE" in cols[self.keyCol] or "FLOAT" in cols[self.keyCol]:
+            keyType = float
+        elif "CHAR" in cols[self.keyCol] or "TEXT" in cols[self.keyCol]:
+            keyType = str
+        elif "BOOLEAN" in cols[self.keyCol]:
+            keyType = bool
+        elif "DATETIME" in cols[self.keyCol]:
+            keyType = datetime
+        else:
+            raise TypeError("Unrecongized sql type.")
+        df = lightdf.from_dict(result, self.keyCol, keyType)
+        return df
+
     def update(self, data: dict):
         """
         Insert for data with new keys;
@@ -131,20 +153,10 @@ class TB:
             sqlPart2 += "),"
         if sqlPart2[-1] == ",":
             sqlPart2 = sqlPart2[:-1]
-        # part 3
-        sqlPart3 = " ON CONFLICT(`{}`) ".format(self.keyCol)
-        sqlPart3 += "DO UPDATE SET "
-        for col in cols:
-            if col == self.keyCol:
-                continue
-            sqlPart3 += "`{col}` = `{col}`,".format(col=col)
-        if sqlPart3[-1] == ",":
-            sqlPart3 = sqlPart3[:-1]
         # group parts
-        sql = "INSERT INTO `{}`".format(self.tbName)
+        sql = "INSERT OR REPLACE INTO `{}`".format(self.tbName)
         sql += sqlPart1 + " VALUES "
-        sql += sqlPart2
-        sql += sqlPart3 + ";"
+        sql += sqlPart2 + ";"
         self.db.cur.execute(sql)
 
     def __getKeyCol(self):
