@@ -1,5 +1,5 @@
 from .lightdf.dataframe import Dataframe
-import lightdf
+from . import lightdf
 from datetime import datetime
 
 
