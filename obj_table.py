@@ -114,7 +114,7 @@ class TB:
             keyType = str
         elif "BOOLEAN" in cols[self.keyCol]:
             keyType = bool
-        elif "DATETIME" in cols[self.keyCol]:
+        elif "DATE" in cols[self.keyCol]:
             keyType = datetime
         else:
             raise TypeError("Unrecongized sql type.")
@@ -130,7 +130,7 @@ class TB:
                 df.changeColType(col, str)
             elif "BOOLEAN" in cols[col]:
                 df.changeColType(col, bool)
-            elif "DATETIME" in cols[col]:
+            elif "DATE" in cols[col]:
                 df.changeColType(col, datetime)
             else:
                 raise TypeError("Unrecongized sql type.")
