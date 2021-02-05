@@ -1,7 +1,3 @@
-from .lightdf.dataframe import Dataframe
-from . import lightdf
-from datetime import datetime
-
 
 class TB:
 
@@ -102,39 +98,6 @@ class TB:
             for i in range(1, len(value)):
                 results[value[0]][cols[i]] = value[i]
         return results
-
-    def query_todf(self, column: str = "*", condition="") -> Dataframe:
-        result = self.query(column, condition)
-        cols = self.listCol()
-        if "INT" in cols[self.keyCol]:
-            keyType = int
-        elif "DOUBLE" in cols[self.keyCol] or "FLOAT" in cols[self.keyCol]:
-            keyType = float
-        elif "CHAR" in cols[self.keyCol] or "TEXT" in cols[self.keyCol]:
-            keyType = str
-        elif "BOOLEAN" in cols[self.keyCol]:
-            keyType = bool
-        elif "DATE" in cols[self.keyCol]:
-            keyType = datetime
-        else:
-            raise TypeError("Unrecongized sql type.")
-        df = lightdf.from_dict(result, self.keyCol, keyType)
-        for col in cols:
-            if col == self.keyCol:
-                continue
-            elif "INT" in cols[col]:
-                df.changeColType(col, int)
-            elif "DOUBLE" in cols[col] or "FLOAT" in cols[col]:
-                df.changeColType(col, float)
-            elif "CHAR" in cols[col] or "TEXT" in cols[col]:
-                df.changeColType(col, str)
-            elif "BOOLEAN" in cols[col]:
-                df.changeColType(col, bool)
-            elif "DATE" in cols[col]:
-                df.changeColType(col, datetime)
-            else:
-                raise TypeError("Unrecongized sql type.")
-        return df
 
     def update(self, data: dict):
         """
