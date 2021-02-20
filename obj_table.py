@@ -20,7 +20,7 @@ class TB:
             "ALTER TABLE `{}` RENAME `{}`;".format(self.tbName, newName))
         self.tbName = newName
 
-    def listCol(self) -> dict:
+    def list_col(self) -> dict:
         """
         List out all columns in table.
         """
@@ -35,7 +35,7 @@ class TB:
                 cols[col[1]] += " PRIMARY KEY"
         return cols
 
-    def countCol(self) -> int:
+    def count_col(self) -> int:
         """
         Count columns in table.
         """
@@ -43,21 +43,21 @@ class TB:
         values = self.db.cur.fetchall()
         return len(values)
 
-    def addCol(self, colName: str, colType: str):
+    def add_col(self, colName: str, colType: str):
         """
         Add a new column to table.
         """
         self.db.cur.execute("ALTER TABLE `{}` ADD `{}` {};".format(
             self.tbName, colName, colType))
 
-    def dropCol(self, colName: str):
+    def drop_col(self, colName: str):
         """
         Drop a column from table.
         """
         if colName == self.keyCol:
             raise KeyError("Cannot delete key column.")
         data = self.query()
-        cols = self.listCol()
+        cols = self.list_col()
         for key in data:
             data[key].pop(colName)
         self.drop()
@@ -69,15 +69,15 @@ class TB:
                 continue
             if col == colName:
                 continue
-            self.addCol(col, cols[col])
+            self.add_col(col, cols[col])
         self.update(data)
 
-    def countData(self) -> int:
+    def count_data(self) -> int:
         self.db.cur.execute("SELECT COUNT(*) FROM `{}`;".format(self.tbName))
         values = self.db.cur.fetchall()
         return values[0][0]
 
-    def dropData(self, keyVal: any):
+    def drop_data(self, keyVal: any):
         keyVal = self.__valueToString(keyVal)
         self.db.cur.execute("DELETE FROM `{}` WHERE `{}` = {};".format(
             self.tbName, self.keyCol, keyVal))
@@ -91,7 +91,7 @@ class TB:
             sql += " " + condition
         self.db.cur.execute(sql)
         values = self.db.cur.fetchall()
-        cols = list(self.listCol().keys())
+        cols = list(self.list_col().keys())
         results = {}
         for value in values:
             results[value[0]] = {}
@@ -107,7 +107,7 @@ class TB:
         if len(data) == 0:
             return
         # part 1
-        cols = list(self.listCol().keys())
+        cols = list(self.list_col().keys())
         sqlPart1 = "("
         for col in cols:
             sqlPart1 += "`" + col + "`,"
@@ -138,7 +138,7 @@ class TB:
         self.db.cur.execute(sql)
 
     def __getKeyCol(self):
-        cols = self.listCol()
+        cols = self.list_col()
         for col in cols:
             if "PRIMARY KEY" in cols[col]:
                 self.keyCol = col

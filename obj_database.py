@@ -25,7 +25,7 @@ class DB:
         """
         self.conn.close()
 
-    def listTB(self, filter: str = None) -> list:
+    def list_tb(self, filter: str = None) -> list:
         """
         List out all Tables in database.
         """
@@ -40,7 +40,7 @@ class DB:
             tbs.append(tb[0])
         return tbs
 
-    def countTB(self) -> int:
+    def count_tb(self) -> int:
         """
         Count the tables in database.
         """
@@ -48,7 +48,7 @@ class DB:
         values = self.cur.fetchall()
         return len(values)
 
-    def createTB(self, tbName: str, keyName: str, keyType: str) -> object:
+    def create_tb(self, tbName: str, keyName: str, keyType: str) -> object:
         """
         Create a new table with a key column.
         """
