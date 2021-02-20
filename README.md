@@ -39,9 +39,9 @@ db.close()
 
 * **func |** commit ( )
 * **func |** close ( )
-* **func |** listTB ( ) **->** TableList: `list`
-* **func |** countTB ( ) **->** NumOfTable: `int`
-* **func |** createTB ( tbName: `str`, keyName: `str`, keyType: `str` ) **->** TBObject: `object`
+* **func |** list_tb ( ) **->** TableList: `list`
+* **func |** count_tb ( ) **->** NumOfTable: `int`
+* **func |** create_tb ( tbName: `str`, keyName: `str`, keyType: `str` ) **->** TBObject: `object`
 * **func |** TB ( tbName: `str` ) **->** TBObject: `object`
 * **func |** execute ( quote: `str` ) **->** values: `list`
 
@@ -49,12 +49,12 @@ db.close()
 
 * **func |** drop ( )
 * **func |** rename ( newName: `str`)
-* **func |** listCol ( ) **->** listOfColumn: `dict`
-* **func |** countCol ( ) **->** NumOfColumn: `int`
-* **func |** addCol ( colName: `str`, colType: `str` )
-* **func |** dropCol ( colName: `str` )
-* **func |** countData ( ) **->** NumOfData: `int`
-* **func |** dropData ( keyVal: `any` )
+* **func |** list_col ( ) **->** listOfColumn: `dict`
+* **func |** count_col ( ) **->** NumOfColumn: `int`
+* **func |** add_col ( colName: `str`, colType: `str` )
+* **func |** drop_col ( colName: `str` )
+* **func |** count_data ( ) **->** NumOfData: `int`
+* **func |** drop_data ( keyVal: `any` )
 * **func |** query ( column: `str`, condition: `str` ) **->** results: `dict`
 * **func |** update ( data: `dict` )
 
