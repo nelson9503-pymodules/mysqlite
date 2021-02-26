@@ -4,14 +4,14 @@ from .obj_table import TB
 
 class DB:
 
-    def __init__(self, dbPath: str):
+    def __init__(self, db_path: str):
         """
         Connect to database.
         If not database exists, create a new one.
         """
-        self.conn = sqlite3.connect(dbPath, timeout=86400)
+        self.conn = sqlite3.connect(db_path, timeout=86400)
         self.cur = self.conn.cursor()
-        self.dbPath = dbPath
+        self.db_path = db_path
 
     def commit(self):
         """
@@ -40,33 +40,25 @@ class DB:
             tbs.append(tb[0])
         return tbs
 
-    def count_tb(self) -> int:
-        """
-        Count the tables in database.
-        """
-        self.cur.execute("SELECT name from sqlite_master WHERE type='table';")
-        values = self.cur.fetchall()
-        return len(values)
-
-    def create_tb(self, tbName: str, keyName: str, keyType: str) -> object:
+    def create_tb(self, tb_name: str, key_col_name: str, key_data_type: str) -> object:
         """
         Create a new table with a key column.
         """
         self.cur.execute("CREATE TABLE `{}` (`{}` {} NOT NULL PRIMARY KEY);".format(
-            tbName, keyName, keyType))
-        tb = self.TB(tbName)
+            tb_name, key_col_name, key_data_type))
+        tb = self.TB(tb_name)
         return tb
 
-    def TB(self, tbName: str) -> object:
+    def TB(self, tb_name: str) -> object:
         """
         Connect to a table.
         """
-        tb = TB(tbName, self)
+        tb = TB(tb_name, self)
         return tb
 
-    def execute(self, quote: str) -> list:
+    def execute(self, sql_quote: str) -> list:
         """
         execute sql quote directly.
         """
-        values = self.cur.execute(quote)
+        values = self.cur.execute(sql_quote)
         return values

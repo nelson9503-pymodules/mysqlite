@@ -4,7 +4,7 @@ class TB:
     def __init__(self, tbName: str, dbObj: object):
         self.tbName = tbName
         self.db = dbObj
-        self.__getKeyCol()
+        self.__get_key_col_name()
 
     def drop(self):
         """
@@ -35,14 +35,6 @@ class TB:
                 cols[col[1]] += " PRIMARY KEY"
         return cols
 
-    def count_col(self) -> int:
-        """
-        Count columns in table.
-        """
-        self.db.cur.execute("PRAGMA table_info(`{}`)".format(self.tbName))
-        values = self.db.cur.fetchall()
-        return len(values)
-
     def add_col(self, colName: str, colType: str):
         """
         Add a new column to table.
@@ -54,7 +46,7 @@ class TB:
         """
         Drop a column from table.
         """
-        if colName == self.keyCol:
+        if colName == self.key_col_name:
             raise KeyError("Cannot delete key column.")
         data = self.query()
         cols = self.list_col()
@@ -62,25 +54,20 @@ class TB:
             data[key].pop(colName)
         self.drop()
         self.db.commit()
-        self.db.createTB(self.tbName, self.keyCol,
-                         cols[self.keyCol].replace("NOT NULL PRIMARY KEY", ""))
+        self.db.createTB(self.tbName, self.key_col_name,
+                         cols[self.key_col_name].replace("NOT NULL PRIMARY KEY", ""))
         for col in cols:
-            if col == self.keyCol:
+            if col == self.key_col_name:
                 continue
             if col == colName:
                 continue
             self.add_col(col, cols[col])
         self.update(data)
 
-    def count_data(self) -> int:
-        self.db.cur.execute("SELECT COUNT(*) FROM `{}`;".format(self.tbName))
-        values = self.db.cur.fetchall()
-        return values[0][0]
-
     def drop_data(self, keyVal: any):
-        keyVal = self.__valueToString(keyVal)
+        keyVal = self.__value_to_string(keyVal)
         self.db.cur.execute("DELETE FROM `{}` WHERE `{}` = {};".format(
-            self.tbName, self.keyCol, keyVal))
+            self.tbName, self.key_col_name, keyVal))
 
     def query(self, column: str = "*", condition="") -> dict:
         """
@@ -118,13 +105,13 @@ class TB:
         sqlPart2 = ""
         for keyVal in data:
             vals = data[keyVal]
-            vals[self.keyCol] = keyVal
+            vals[self.key_col_name] = keyVal
             sqlPart2 += "("
             for col in cols:
                 if not col in vals or vals[col] == None:
                     val = "null"
                 else:
-                    val = self.__valueToString(vals[col])
+                    val = self.__value_to_string(vals[col])
                 sqlPart2 += val + ","
             if sqlPart2[-1] == ",":
                 sqlPart2 = sqlPart2[:-1]
@@ -137,15 +124,15 @@ class TB:
         sql += sqlPart2 + ";"
         self.db.cur.execute(sql)
 
-    def __getKeyCol(self):
+    def __get_key_col_name(self):
         cols = self.list_col()
         for col in cols:
             if "PRIMARY KEY" in cols[col]:
-                self.keyCol = col
+                self.key_col_name = col
                 return
         raise KeyError("Table has no key column.")
 
-    def __valueToString(self, val: any) -> str:
+    def __value_to_string(self, val: any) -> str:
         if type(val) == str:
             val = '"' + val + '"'
         else:
