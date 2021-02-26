@@ -40,7 +40,7 @@ class DB:
             tbs.append(tb[0])
         return tbs
 
-    def create_tb(self, tb_name: str, key_col_name: str, key_data_type: str) -> object:
+    def add_tb(self, tb_name: str, key_col_name: str, key_data_type: str) -> object:
         """
         Create a new table with a key column.
         """
