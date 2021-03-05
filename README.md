@@ -41,7 +41,7 @@ tbs = db.list_tb()
 To create a table, users must define the table name, key column name and the data type of keys. The new table conatins only the key column at first initialization. User should add the value columns to complete the table setting.
 
 ```python
-tb = db.add_table("staff_table", "staff_id", "INT")
+tb = db.add_tb("staff_table", "staff_id", "INT")
 tb.add_col("name", "CHAR(100)")
 tb.add_col("gender", "CHAR(1)")
 ```

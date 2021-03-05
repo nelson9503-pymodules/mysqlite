@@ -1,8 +1,10 @@
 
+# TB is Table object, which controls the data.
+
 class TB:
 
-    def __init__(self, tbName: str, dbObj: object):
-        self.tbName = tbName
+    def __init__(self, tb_name: str, dbObj: object):
+        self.tb_name = tb_name
         self.db = dbObj
         self.__get_key_col_name()
 
@@ -10,74 +12,84 @@ class TB:
         """
         Table drop itself from database.
         """
-        self.db.cur.execute("DROP TABLE `{}`".format(self.tbName))
+        sql = "DROP TABLE `{}`".format(self.tb_name)
+        self.db.execute(sql)
 
-    def rename(self, newName: str):
+    def rename(self, new_name: str):
         """
         Rename table.
         """
-        self.db.cur.execute(
-            "ALTER TABLE `{}` RENAME `{}`;".format(self.tbName, newName))
-        self.tbName = newName
+        sql = "ALTER TABLE `{}` RENAME `{}`;".format(self.tb_name, new_name)
+        self.db.execute(sql)
+        self.tb_name = new_name
 
     def list_col(self) -> dict:
         """
-        List out all columns in table.
+        Get columns mapped with data type.
         """
-        self.db.cur.execute("PRAGMA table_info(`{}`)".format(self.tbName))
-        values = self.db.cur.fetchall()
+        sql = "PRAGMA table_info(`{}`)".format(self.tb_name)
+        values = self.db.execute(sql)
         cols = {}
         for col in values:
             cols[col[1]] = col[2]
-            if col[3] == 1:
+            if col[3] == 1:  # column 3, 1 is True, means Not Null
                 cols[col[1]] += " NOT NULL"
-            if col[5] == 1:
+            if col[5] == 1:  # column 5, 1 is True, means Primary Key
                 cols[col[1]] += " PRIMARY KEY"
         return cols
 
-    def add_col(self, colName: str, colType: str):
+    def add_col(self, col_name: str, colType: str):
         """
         Add a new column to table.
         """
-        self.db.cur.execute("ALTER TABLE `{}` ADD `{}` {};".format(
-            self.tbName, colName, colType))
+        sql = "ALTER TABLE `{}` ADD `{}` {};".format(
+            self.tb_name, col_name, colType)
+        self.db.execute(sql)
 
-    def drop_col(self, colName: str):
+    def drop_col(self, col_name: str):
         """
         Drop a column from table.
         """
-        if colName == self.key_col_name:
+        if col_name == self.key_col_name:
             raise KeyError("Cannot delete key column.")
+        # sqlite do not support delete column
+        # we need copy the data and write it to new table
+        # considering we don't drop column frequently,
+        # this resources consuming is aceptable.
         data = self.query()
         cols = self.list_col()
         for key in data:
-            data[key].pop(colName)
+            data[key].pop(col_name)
         self.drop()
         self.db.commit()
-        self.db.createTB(self.tbName, self.key_col_name,
-                         cols[self.key_col_name].replace("NOT NULL PRIMARY KEY", ""))
+        self.db.add_tb(self.tb_name, self.key_col_name,
+                       cols[self.key_col_name].replace("NOT NULL PRIMARY KEY", ""))
         for col in cols:
-            if col == self.key_col_name:
+            if col == self.key_col_name:  # added when create table
                 continue
-            if col == colName:
+            if col == col_name:  # skip the column we want to delete
                 continue
             self.add_col(col, cols[col])
+        # the udpate function will ignore the column not exists
         self.update(data)
 
-    def drop_data(self, keyVal: any):
-        keyVal = self.__value_to_string(keyVal)
-        self.db.cur.execute("DELETE FROM `{}` WHERE `{}` = {};".format(
-            self.tbName, self.key_col_name, keyVal))
+    def drop_data(self, key_val: any):
+        """
+        Drop entire row of data by using keys
+        """
+        key_val = self.__value_to_string(key_val)
+        sql = "DELETE FROM `{}` WHERE `{}` = {};".format(
+            self.tb_name, self.key_col_name, key_val)
+        self.db.execute(sql)
 
     def query(self, column: str = "*", condition="") -> dict:
         """
         Query table in dictionary.
         """
-        sql = "SELECT {} FROM `{}`".format(column, self.tbName)
+        sql = "SELECT {} FROM `{}`".format(column, self.tb_name)
         if not condition == "":
             sql += " " + condition
-        self.db.cur.execute(sql)
-        values = self.db.cur.fetchall()
+        values = self.db.execute(sql)
         cols = list(self.list_col().keys())
         results = {}
         for value in values:
@@ -93,37 +105,48 @@ class TB:
         """
         if len(data) == 0:
             return
-        # part 1
+        part1 = self.__generate_update_quote_part1(data)
+        part2 = self.__generate_update_quote_part2(data)
+        sql = "INSERT OR REPLACE INTO `{tb_name}` {part1} VALUES {part2};".format(
+            tb_name=self.tb_name,
+            part1=part1,
+            part2=part2
+        )
+        self.db.execute(sql)
+
+    # This function generate the update quote part 1.
+    def __generate_update_quote_part1(self, data: dict) -> str:
         cols = list(self.list_col().keys())
-        sqlPart1 = "("
+        part1 = "("
         for col in cols:
-            sqlPart1 += "`" + col + "`,"
-        if sqlPart1[-1] == ",":
-            sqlPart1 = sqlPart1[:-1]
-        sqlPart1 += ")"
-        # part 2
-        sqlPart2 = ""
-        for keyVal in data:
-            vals = data[keyVal]
-            vals[self.key_col_name] = keyVal
-            sqlPart2 += "("
+            part1 += "`{}`,".format(col)
+        if part1[-1] == ",":
+            part1 = part1[:-1]
+        part1 += ")"
+        return part1
+
+    # This function generate the update quote part 2.
+    def __generate_update_quote_part2(self, data: dict) -> str:
+        cols = list(self.list_col().keys())
+        part2 = ""
+        for key_val in data:
+            vals = data[key_val] # get values except the key values
+            vals[self.key_col_name] = key_val # add key value to it
+            part2 += "("
             for col in cols:
                 if not col in vals or vals[col] == None:
                     val = "null"
                 else:
                     val = self.__value_to_string(vals[col])
-                sqlPart2 += val + ","
-            if sqlPart2[-1] == ",":
-                sqlPart2 = sqlPart2[:-1]
-            sqlPart2 += "),"
-        if sqlPart2[-1] == ",":
-            sqlPart2 = sqlPart2[:-1]
-        # group parts
-        sql = "INSERT OR REPLACE INTO `{}`".format(self.tbName)
-        sql += sqlPart1 + " VALUES "
-        sql += sqlPart2 + ";"
-        self.db.cur.execute(sql)
+                part2 += val + ","
+            if part2[-1] == ",":
+                part2 = part2[:-1]
+            part2 += "),"
+        if part2[-1] == ",":
+            part2 = part2[:-1]
+        return part2
 
+    # This function get the key column name.
     def __get_key_col_name(self):
         cols = self.list_col()
         for col in cols:
@@ -132,6 +155,7 @@ class TB:
                 return
         raise KeyError("Table has no key column.")
 
+    # Convert any values to string before write to sql quote.
     def __value_to_string(self, val: any) -> str:
         if type(val) == str:
             val = '"' + val + '"'
