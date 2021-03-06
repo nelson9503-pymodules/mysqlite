@@ -73,4 +73,5 @@ class DB:
         return a 2-d list: [[val, val], [val, val], ...]
         """
         values = self.cur.execute(sql_quote)
+        values = values.fetchall()
         return values
